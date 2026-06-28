@@ -184,11 +184,11 @@ async def get_dataset_table(
         # Get first 100 rows
         preview_df = df.head(100)
 
-        # Convert to records
-        records = preview_df.to_dict("records")
+        # Convert to records with NaN handling
+        from app.shared.pandas_utils import sanitize_dataframe_for_json, detect_column_types
+        records = sanitize_dataframe_for_json(preview_df)
 
         # Get column types
-        from app.shared.pandas_utils import detect_column_types
         column_types = detect_column_types(df)
 
         return DatasetTableResponse(
@@ -255,3 +255,4 @@ async def delete_dataset(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Error deleting dataset",
         )
+

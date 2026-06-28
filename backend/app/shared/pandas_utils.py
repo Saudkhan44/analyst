@@ -194,3 +194,32 @@ def get_datetime_columns(df: pd.DataFrame) -> List[str]:
         list: Datetime column names
     """
     return df.select_dtypes(include=["datetime64"]).columns.tolist()
+
+
+def sanitize_dataframe_for_json(df: pd.DataFrame) -> List[Dict[str, Any]]:
+    """
+    Convert DataFrame to JSON-serializable records, replacing NaN with None.
+
+    Handles NaN, Inf, and other non-JSON-compliant float values.
+
+    Args:
+        df: Input DataFrame
+
+    Returns:
+        list: List of dictionaries with NaN values replaced by None
+    """
+    # Replace NaN and Inf with None
+    df_clean = df.where(pd.notna(df), None)
+    
+    # Convert to records
+    records = df_clean.to_dict("records")
+    
+    # Additional pass to handle any remaining NaN/Inf values
+    for record in records:
+        for key, value in record.items():
+            if isinstance(value, float):
+                if np.isnan(value) or np.isinf(value):
+                    record[key] = None
+    
+    return records
+
